@@ -1,0 +1,119 @@
+---
+title: "Resolución Actividad 3 máster Bioinformática UNIR (2024)"
+author: "Elena Varea Jiménez, Cristina Ruiz Roldán, Leire Martínez Montoya, Andrés Cayuela Salas"
+date: "2024-06-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+```
+
+# Estadística y R para Ciencias de la Salud
+
+## Actividad 3. Análisis de caso práctico en R
+
+### Objetivo
+
+Análisis de los datos del dataset alimentos_nutrientes_4900.csv  para la elaboración del análisis práctico de un caso.
+
+### Importación de los datos
+```{r, message=FALSE, include=TRUE}
+rm(list = ls()) # limpio el environment
+
+
+library(dplyr) # Manipulación de datos
+library(readr) # Carga de ficheros CSV
+library(flextable) # Manipulación de tablas
+library(stats) # Para realizar PCA
+library(officer) # Documentos office
+library(gt) # Tablas de estadística
+library(ggrepel) # Graficos PCA
+library(stats) # PCA
+library(FactoMineR) # Gráficas PCA
+library(RColorBrewer) # Gráficas PCA
+library(factoextra) # Análisis PCA
+library(ggplot2) # Graficar
+library(gtsummary) # Tablas de estadística
+
+data <- read_csv("mubio02_act3_alimentos_nutrientes_4900.csv") 
+
+```
+
+### Aplicar un PCA a los datos de alimentos y nutrientes
+#### Primero se normalizan los datos
+
+```{r, include=TRUE}
+# Excluir columna que no es descriptora del tumor y las que son categóricas
+data_for_pca <- subset(data, select = c(METs_h_semana:nutriente19))
+
+# Normalizar los datos
+# Escalar cada columna para que tenga media ~0 y desviación estándar ~1
+normalized_data <- as.data.frame(lapply(data_for_pca, scale))
+
+# Identificar las columnas en data que no están en normalized_data
+columns_to_add <- setdiff(colnames(data), colnames(normalized_data))
+
+# Añadir estas columnas a normalized_data en primera posición
+normalized_data <- cbind(data[, columns_to_add], normalized_data)
+
+# Verificar el resultado
+head(normalized_data)
+
+# El dataframe "normalized_data" incluye valores NA en variables categoricas. No tiene sentido eliminar o reeemplazar por las medias de las columnas ya que no pertenecerían a ninguna categoría.
+
+```
+
+#### Se analiza la normalidad de una muestra de los datos
+```{r, include=TRUE}
+# subset de las variables de alimentos y nutrientes (muestra de datos)
+subset_data <- subset(normalized_data, select = c(alimento1:alimento20, nutriente1:nutriente19))
+
+# Se crea una lista para almacenar los resultados que se necesitan para la tabla de normalidad
+shapiro_results <- list()
+# Iterar sobre las columnas de subset_data
+for (col_name in colnames(subset_data)) {
+  # Realizar el test de Shapiro-Wilk
+  shapiro <- shapiro.test(subset_data[[col_name]])
+    # Almacenar los resultados en la lista
+  shapiro_results[[col_name]] <- list(
+    test = "Shapiro-Wilk",
+    p_value = ifelse(shapiro$p.value < 0.001, "<0.001", shapiro$p.value),
+    interpretacion = ifelse(shapiro$p.value < 0.05, "No normal", "Normal")
+  )
+}
+
+# Crear un vector para cada columna
+variables <- character()
+tests <- character()
+p_values <- character()
+interpretations <- character()
+
+# Concatenar la información en los vectores que se necesita para el data frame
+for (col_name in names(shapiro_results)) {
+  variables <- c(variables, col_name)
+  tests <-  c(tests, shapiro_results[[col_name]]$test)
+  p_values <- c(p_values, shapiro_results[[col_name]]$p_value)
+  interpretations <- c(interpretations, shapiro_results[[col_name]]$interpretacion)
+}
+
+# Crear el data frame
+resultados_tabla <- data.frame(
+  Variable = variables,
+  "Test utilizado" = tests,
+  "Valor p" = p_values,
+  Interpretación = interpretations
+)
+
+# Con el data frame creado, se saca la tabla flextable y se edita
+tabla_flex1 <- flextable(resultados_tabla)
+tabla_flex1 <- set_caption(tabla_flex1, as_paragraph(as_b('Tabla 1. Análisis de la normalidad')),  align_with_table = FALSE)
+tabla_flex1 <- set_table_properties(tabla_flex1, layout = "autofit", width = 1)
+tabla_flex1 <- footnote(tabla_flex1, i = 1, j = 1,
+  ref_symbols = "a", part = "header",
+  value = as_paragraph("Análisis de la normalidad de las variables consumo de alimento (g/día) y consumo de nutrientes (mg/día)")
+)
+
+tabla_flex1
+
+```

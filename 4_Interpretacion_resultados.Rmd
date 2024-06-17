@@ -1,0 +1,37 @@
+---
+title: "Resolución actividad grupal máster Bioinformática UNIR (2024)"
+author: Elena Varea Jiménez, Cristina Ruiz Roldán, Leire Martínez Montoya, Andrés
+  Cayuela Salas
+date: "2024-06-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+
+# Introducción a la programación científica
+
+## Actividad 2. Github: Crear un repositorio en github. Control de versiones.
+```
+
+### Interpretación de los resultados
+
+Tras el Análisis de Componentes Principales (PCA), se lleva a cabo un modelo de regresión logística que intenta explicar la asociación entre los Componentes Principales (PC) 1 y 2 y la prevalencia de diabetes (variable diab_prev), utilizando como variables predictoras el sexo, la edad, el IMC y el tabaco, variables que creemos que son importantes a la hora de determinar el riesgo de padecer una enfermedad. Se han dividido los PC en terciles, pertenenciendo al tercil 3 aquellas variables que mayor grado de adherencia muestran al componente, y al tercil 1 las que menor grado de adherencia muestran. Según los gráficos de contribución de las variables, las variables que más contribuyen al PC1 y PC2 son las siguientes (de mayor a menor grado de contribución):
+
+  - PC1: nutriente7, nutriente4, nutriente2, nutriente13, nutriente10, nutriente12, nutriente11, nutriente14, nutriente8, nutriente19
+  - PC2: carnes, lacteos, verdura, nutriente19, fruta, alimento27, nutriente6, nutriente16, alimento20, alimento52
+  
+Por tanto, estas son las variables que esperaríamos encontrar en el tercil 3 de cada componente, aquellas que más contribuyen y que, por tanto, mayor adherencia muestran al componente correspondiente. Los resultados del modelo de regresión logística se presentan en la Tabla 5 (Tabla de regresión logística).
+
+Vamos a empezar analizando las variables para el primer componente. Aquellas variables pertenecientes al tercil 2 muestran un odds ratio (OR) de 0,58, lo que significa que muestran una disminución del 42% de contribuir a la enfermedad de diabetes respecto a las variables pertenecientes al tercil 1, la categoría de referencia para esta variable (componente1_t). Por otro lado, el tercil 3 tiene un OR de 0,88, por lo que la probabilidad de contribuir a la enfermedad es un 12% menor que las variables pertenecientes al tercil 1. Aun así, el p-valor de estos odds ratio es de 0,2, superando el umbral de significancia, por lo que no podemos rechazar una contribución del azar en estos resultados.
+
+Por otro lado, tenemos las variables predictoras mencionadas previamente: el sexo es una variable dicotómica en este caso, con valores de 1 y 2. Vamos a suponer que 1 = hombre y 2 = mujer, por lo que la categoría de referencia será la de los hombres. Por tanto, lo que nos muestra la tabla es que las mujeres presentan una reducción del 21% de padecer diabetes respecto a los hombres, aunque esta medida no alcanza el nivel de significación establecido (0,05). En cuanto a la edad, el OR tiene un valor de 1,07. Siendo esta una variable continua, los datos nos revelan que el aumento de una unidad en la edad (un año) aumenta la probabilidad de padecer diabetes en un 7%, en este caso con significancia estadística (p-valor<0,001). Lo mismo sucede con el IMC: a mayor IMC, mayor probabilidad de padecer diabetes. En este caso, el aumento de una unidad en la medida de IMC aumenta en un 15% la probabilidad de contraer esta enfermedad, también con significancia estadística. Por último, tenemos la variable tabaco, la cual tiene un OR de 1.10. 
+Esto implica que por cada unidad que aumenta la variable tabaco, la probabilidad de padecer diabetes aumenta en un 10%. Sin embargo, esta medida tampoco presenta un p-valor por debajo del umbral de significancia, por lo que estos resultados podrían deberse al azar.
+Esta misma interpretación puede hacerse para el componente 2: en comparación con el tercil 1, aquellas variables que se encuentran en el tercil 2 del PC2 muestran un aumento de la probabilidad del 45% de contribuir a la enfermedad de diabetes. Asimismo, la probabilidad también aumenta para las variables del tercil 3, en este caso en un 146%. En este caso los OR presentan un p-valor menor a 0,001, por lo que rechazamos la contribución del azar en estos resultados.
+Para la variable sexo, extraemos que las mujeres tienen una disminución del 38% de probabilidad de padecer diabetes con respecto a la categoría de referencia, los hombres. El aumento de la edad sigue suponiendo una mayor probabilidad de contraer diabetes, en este caso con un aumento del 6% a cada año. En cuanto al IMC, los datos son los mismos para ambos componentes: el aumento de una unidad de IMC aumenta un 15% la probabilidad de padecer diabetes. Estas tres variables mencionadas muestran un p-valor menor a 0,001, altamente significativo. Por último, para la variable tabaco aumenta la probabilidad de padecer la afección en un 8% a medida que aumenta la variable en una unidad. Al igual que en el análisis del PC1, el p-valor que muestra no es significativo (p-valor>0,05).
+
+Como recomendaciones para mejorar el análisis se podría aplicar un modelo LASSO, Ridge o
+ElasticNet regression, ya que introducen penalizaciones en los coeficientes de regresión y son recomendables cuando se trabaja con conjuntos de datos complejos con múltiples variables predictoras, evitando problemas de multicolinealidad y sobreajuste. También facilitan la selección de las variables más relevantes, reduciendo la influencia de las variables menos importantes en el modelo.
+
+
+

@@ -1,0 +1,110 @@
+---
+title: "PCA y gráficos descriptivos"
+author: Andrés Cayuela Salas, Cristina Ruiz Roldán, Leire Martínez Montoya, Elena
+  Varea Jiménez
+date: "2024-06-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### Se realiza el PCA
+
+```{r, include=TRUE}
+# La función prcomp() centra las variables para que tengan media de 0.
+# No puede emplearse con columnas que tengan NA
+# Con el argumento scale = TRUE se indica que se quieren escalar las variables para que tengan desviación estándar igual a 1.
+
+# Identificación de Datos Nulos y cálculo del número de valores NA por columna
+na_count_per_column <- sapply(normalized_data, function(x) sum(is.na(x)))
+
+# Para obtener una visión más general, se calcula el total de NAs en todo el conjunto de datos
+total_nas <- sum(na_count_per_column)
+print (paste("Total de valores NA en el conjunto de datos:", total_nas))
+```
+```{r, include=TRUE}
+
+# Se reemplazan valores infinitos en cada columna con NA
+normalized_data <- data.frame(lapply(normalized_data, function(x) {
+  x[!is.finite(x)] <- NA
+  return(x)
+}))
+
+# Se cambian los valores NA con la media de cada columna
+normalized_data <- normalized_data %>%
+  mutate(across(everything(), ~ ifelse(is.na(.), mean(., na.rm = TRUE), .)))
+any(is.na(normalized_data))
+
+# Se realiza el PCA como tal 
+pca_alimentos_nutrientes <- prcomp(normalized_data, scale = TRUE)
+summary(pca_alimentos_nutrientes)
+biplot(pca_alimentos_nutrientes)
+
+# Extraer los valores propios/varianzas de los componentes principales
+eigenvalues<- get_eigenvalue(pca_alimentos_nutrientes)
+head(eigenvalues) # Se seleccionan dos dimensiones, dim1 y dim2
+
+# Visualizar los valores propios
+fviz_eig(pca_alimentos_nutrientes, addlabels = TRUE, ylim = c(0, 12))
+
+# Extraer los resultados para individuos
+pca_ind <- get_pca_ind(pca_alimentos_nutrientes)
+print(pca_ind)
+```
+
+### Gráficos descriptivos de los resultados del análisis PCA
+
+```{r, include=TRUE}
+# Extraer los resultados de las variables
+get_pca_var(pca_alimentos_nutrientes)
+
+# Visualizar grafico de correlación
+fviz_pca_var(pca_alimentos_nutrientes, col.var = "orange")+
+  geom_text_repel(aes(label = rownames(pca_alimentos_nutrientes$rotation)), max.overlaps = 10) # Este grafico permite observar las correlaciones de cada variable a cada dimensión
+```
+
+```{r, include=TRUE}
+# Variacion grafico de correlacion en funcion de la representatividad (cos2) de las variables:
+fviz_pca_var(pca_alimentos_nutrientes, col.var = "cos2", 
+             gradient.cols = c("lightblue", "yellow", "red"))+
+  geom_text_repel(aes(label = rownames(pca_alimentos_nutrientes$rotation)), max.overlaps = 10) # Permite observar qué variables están más representadas en el modelo para cada dimensión
+```
+
+```{r, include=TRUE}
+# Visualizar la importancia de cada variable de las dimensiones 1 y 2
+fviz_cos2(pca_alimentos_nutrientes, choice = "var", axes = 1:2, top = 15) # A mayor valor de cos2, mayor importancia tendrá esta variable
+```
+
+```{r, include=TRUE}
+# Visualizar la importancia de cada variable de la dimensión 1
+fviz_contrib(pca_alimentos_nutrientes, choice = "var", axes = 1, top = 10) # La que más contribuye a la dimensión 1 es 'nutriente7'
+```
+
+
+```{r, include=TRUE}
+# Visualizar la importancia de cada variable de la dimensión 2
+fviz_contrib(pca_alimentos_nutrientes, choice = "var", axes = 2, top = 10) # La que más contribuye a la dimensión 2 es 'carnes'
+```
+
+```{r, include=TRUE}
+# Hacer un biplot de individuos y variables, de un total de 15.
+fviz_pca_biplot(pca_alimentos_nutrientes, 
+                repel = TRUE,
+                geom.ind = "point",
+                col.ind = "black",
+                select.var = list(contrib = 15),
+                select.ind = list(contrib = 15),
+                pointsize = 2,
+                pointshape = 21,
+                palette = brewer.pal(3, "Accent"),
+                addEllipses = TRUE,
+                alpha.var = "contrib",
+                col.var = "contrib",
+                gradient.cols = c("blue", "yellow", "red"),
+                legend.title = list (color = "Contrib",
+                                     alpha = "Direction")
+)
+
+```

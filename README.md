@@ -13,3 +13,6 @@ El objetivo de este repositorio es la colaboración entre los integrantes del eq
   `git commit -m "Mensaje del commit"`
 4. Subir los cambios al repositorio remoto (Github).
 `git push origin main:main`
+
+![workflow de github](https://github.com/Leiremm10/Taller-equipo6/images/github_workflow.png)
+
